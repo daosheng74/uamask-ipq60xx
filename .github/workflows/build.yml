@@ -1,7 +1,7 @@
 name: Build UAmask for AX5
 
 on:
-  workflow_dispatch: # 支持手动触发
+  workflow_dispatch: # 手动触发
   push:
     branches:
       - main
@@ -15,13 +15,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2️⃣ 克隆 uaswitch 仓库（通过 Actions token，无需交互）
-      - name: Checkout uaswitch
-        uses: actions/checkout@v3
-        with:
-          repository: avwo/uaswitch
-          path: uaswitch
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # 2️⃣ 克隆 uaswitch 仓库（公开仓库，稳定方式）
+      - name: Clone uaswitch repo
+        run: |
+          git clone --depth 1 https://github.com/avwo/uaswitch.git uaswitch
 
       # 3️⃣ 安装依赖（根据你的项目需求修改）
       - name: Install dependencies
