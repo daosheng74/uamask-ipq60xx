@@ -1,7 +1,7 @@
 name: Build UAmask for AX5
 
 on:
-  workflow_dispatch: # 手动触发
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -11,31 +11,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 检出你自己的仓库代码
+      # 检出当前仓库
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2️⃣ 克隆 uaswitch 仓库（公开仓库，稳定方式）
+      # 克隆 uaswitch 仓库（公开仓库，直接 HTTPS）
       - name: Clone uaswitch repo
         run: |
           git clone --depth 1 https://github.com/avwo/uaswitch.git uaswitch
 
-      # 3️⃣ 安装依赖（根据你的项目需求修改）
+      # 安装依赖（保持通用）
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y git build-essential
 
-      # 4️⃣ 构建 UAmask（根据实际构建命令修改）
+      # 构建 UAmask（假设仓库中有 build.sh 脚本）
       - name: Build UAmask
         working-directory: uaswitch
         run: |
           chmod +x build.sh
           ./build.sh
 
-      # 5️⃣ 上传构建产物（使用 v4 版本）
+      # 上传构建产物（使用官方推荐版本 v4）
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: uamask-build
-          path: uaswitch/output/  # 修改为你的实际输出目录
+          path: uaswitch/output/
