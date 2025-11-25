@@ -17,7 +17,7 @@ jobs:
 
       # 2️⃣ 克隆 uaswitch 仓库（通过 Actions token，无需交互）
       - name: Checkout uaswitch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: avwo/uaswitch
           path: uaswitch
