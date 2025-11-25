@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install build tools
         run: |
@@ -24,7 +24,7 @@ jobs:
           ls -lh
 
       - name: Upload compiled binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: uamask-aarch64
           path: uaswitch/uamask
