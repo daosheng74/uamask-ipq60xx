@@ -1,0 +1,30 @@
+name: Build UAmask for AX5
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Clone UAmask source
+        run: |
+          git clone https://github.com/avwo/uaswitch.git
+          cd uaswitch
+          make CC=aarch64-linux-gnu-gcc
+          ls -lh
+
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: uamask-aarch64
+          path: uaswitch/uamask
