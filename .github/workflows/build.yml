@@ -1,4 +1,4 @@
-name: Build UA-Mask
+name: Build UA-Mask for AX5
 
 on:
   workflow_dispatch:
@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 检出当前仓库
-      - name: Checkout repo
+      # 1️⃣ 检出当前仓库
+      - name: Checkout this repo
         uses: actions/checkout@v3
 
-      # 克隆 UA-Mask 仓库
+      # 2️⃣ 克隆 UA-Mask 仓库
       - name: Checkout UA-Mask
         uses: actions/checkout@v3
         with:
@@ -24,22 +24,54 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 安装依赖
+      # 3️⃣ 安装 SDK 依赖
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential golang git
+          sudo apt install -y git build-essential libncurses5-dev zlib1g-dev gawk flex gettext wget
 
-      # 构建 UA-Mask
-      - name: Build UA-Mask
-        working-directory: ua-mask
+      # 4️⃣ 下载并解压 OpenWrt SDK (IPQ60xx)
+      - name: Download OpenWrt SDK
         run: |
-          chmod +x build.sh
-          ./build.sh
+          wget https://downloads.openwrt.org/releases/23.05.4/targets/ipq60xx/generic/openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64.tar.xz
+          tar -xf openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64.tar.xz
 
-      # 上传构建产物
-      - name: Upload artifacts
+      # 5️⃣ 将 UA-Mask 放入 SDK package 目录
+      - name: Copy UA-Mask into SDK
+        run: |
+          cp -r ua-mask openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64/package/ua-mask
+
+      # 6️⃣ 更新 feeds 并安装 UA-Mask
+      - name: Prepare SDK feeds
+        run: |
+          cd openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      # 7️⃣ 编译 UA-Mask package
+      - name: Build UA-Mask
+        run: |
+          cd openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64
+          make package/ua-mask/compile V=s
+
+      # 8️⃣ 上传生成的 IPK 包作为 artifact（保留备份）
+      - name: Upload IPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ua-mask-build
-          path: ua-mask/output/
+          name: ua-mask-ipk
+          path: openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64/bin/packages/*/ua-mask*.ipk
+
+      # 9️⃣ 创建 GitHub Release 并上传 IPK
+      - name: Create Release and Upload IPK
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ua-mask-ax5-${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload IPK to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: openwrt-sdk-23.05.4-ipq60xx_generic_gcc-11.4.0_musl.Linux-x86_64/bin/packages/*/ua-mask*.ipk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
